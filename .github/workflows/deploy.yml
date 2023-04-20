@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  applicationfolder: spring-boot-hello-world-example
+  applicationfolder: exotic-cars-race-app
   AWS_REGION: us-east-1
   S3BUCKET: codedeploystack-webappdeploymentbucket-1idxex6e7sabt
 
