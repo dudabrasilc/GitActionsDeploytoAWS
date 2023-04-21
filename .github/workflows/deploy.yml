@@ -43,6 +43,12 @@ jobs:
           aws s3 cp *.war s3://${{ env.S3BUCKET }}/
           cd ../frontend && aws s3 cp build/* s3://${{ env.S3BUCKET }}/
 
+- name: Make build script executable
+  run: chmod +x $GITHUB_WORKSPACE/.github/scripts/build.sh
+- name: Build
+  run: $GITHUB_WORKSPACE/.github/scripts/build.sh
+
+
 
   deploy:
     needs: build
