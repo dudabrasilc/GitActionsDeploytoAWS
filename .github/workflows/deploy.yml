@@ -30,12 +30,12 @@ jobs:
       - name: Build and Package Rails backend
         id: package-backend
         working-directory: ${{ env.applicationfolder }}/backend
-        run: $GITHUB_WORKSPACE/.github/scripts/build-rails.sh
+        run: $GITHUB_WORKSPACE/.github/scripts/build.sh
 
       - name: Build and Package React frontend
         id: package-frontend
         working-directory: ${{ env.applicationfolder }}/frontend
-        run: $GITHUB_WORKSPACE/.github/scripts/build-react.sh
+        run: $GITHUB_WORKSPACE/.github/scripts/build.sh
 
       - name: Upload Artifacts to s3
         working-directory: ${{ env.applicationfolder }}/backend
