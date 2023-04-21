@@ -2,7 +2,7 @@
 set -xe
 
 # Build the Ruby on Rails application
-cd exotic/backed
+cd exotic/backend
 bundle install
 bundle exec rake assets:precompile RAILS_ENV=production
 
