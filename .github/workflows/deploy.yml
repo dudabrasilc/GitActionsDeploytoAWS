@@ -27,28 +27,17 @@ jobs:
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Build and Package Rails backend
-        id: package-backend
-        working-directory: ${{ env.applicationfolder }}/backend
-        run: $GITHUB_WORKSPACE/.github/scripts/build.sh
-
-      - name: Build and Package React frontend
-        id: package-frontend
-        working-directory: ${{ env.applicationfolder }}/frontend
-        run: $GITHUB_WORKSPACE/.github/scripts/build.sh
-
-      - name: Upload Artifacts to s3
-        working-directory: ${{ env.applicationfolder }}/backend
-        run: |
-          aws s3 cp *.war s3://${{ env.S3BUCKET }}/
-          cd ../frontend && aws s3 cp build/* s3://${{ env.S3BUCKET }}/
-
-- name: Make build script executable
-  run: chmod +x $GITHUB_WORKSPACE/.github/scripts/build.sh
-- name: Build
+- name: Build and Package
+  id: package
+  working-directory: ${{ env.applicationfolder }}
   run: $GITHUB_WORKSPACE/.github/scripts/build.sh
 
 
+      - name: Upload Artifacts to s3
+        working-directory: ${{ env.applicationfolder }}/backend
+        run: aws s3 cp *.war s3://${{ env.S3BUCKET }}/
+        working-directory: ${{ env.applicationfolder }}/frontend
+        run: aws s3 cp build/* s3://${{ env.S3BUCKET }}/
 
   deploy:
     needs: build
