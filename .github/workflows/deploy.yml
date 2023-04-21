@@ -10,6 +10,7 @@ env:
   AWS_REGION: us-east-1
   S3BUCKET: codedeploystack-webappdeploymentbucket-1idxex6e7sabt
 
+
 jobs:
   build:
     name: Build and Package
@@ -27,18 +28,29 @@ jobs:
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
 
-- name: Build and Package
-  id: package
-  working-directory: ${{ env.applicationfolder }}
-  run: $GITHUB_WORKSPACE/.github/scripts/build.sh
+      - name: Install Dependencies
+        run: |
+          cd $GITHUB_WORKSPACE/exotic/backend
+          bundle install
+          cd $GITHUB_WORKSPACE/exotic/frontend
+          npm install
 
+      - name: Build and Package
+        id: package
+        run: |
+          cd $GITHUB_WORKSPACE/exotic/backend
+          bundle exec rails assets:precompile RAILS_ENV=production
+          cd $GITHUB_WORKSPACE/exotic/frontend
+          npm run build
 
-      - name: Upload Artifacts to s3
-        working-directory: ${{ env.applicationfolder }}/backend
-        run: aws s3 cp *.war s3://${{ env.S3BUCKET }}/
-        working-directory: ${{ env.applicationfolder }}/frontend
-        run: aws s3 cp build/* s3://${{ env.S3BUCKET }}/
-
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            $GITHUB_WORKSPACE/exotic/backend/public
+            $GITHUB_WORKSPACE/exotic/frontend/build
+          
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -47,15 +59,14 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
-          role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Deploy to Elastic Beanstalk
-        run: |
-          echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
-          commit_hash=`git rev-parse HEAD`
-          aws elasticbeanstalk create-application-version --application-name exotic --version-label $commit_hash --source-bundle S3Bucket=${{ env.S3BUCKET }},S3Key=<key to artifacts>
-          aws elasticbeanstalk update-environment --environment-name Dev --version-label $commit_hash
+    - uses: actions/checkout@v2
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+        role-session-name: GitHub-Action-Role
+        aws-region: ${{ env.AWS_REGION }}
+    - name: Deploy to CodeDeploy
+      run: |
+        echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
+        commit_hash=`git rev-parse HEAD`
+        aws deploy create-deployment --application-name CodeDeployAppNameWithASG --deployment-group-name CodeDeployGroupName --github-location repository=$GITHUB_REPOSITORY,commitId=$commit_hash --ignore-application-stop-failures
