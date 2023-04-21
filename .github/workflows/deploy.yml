@@ -39,9 +39,10 @@ jobs:
 
       - name: Upload Artifacts to s3
         working-directory: ${{ env.applicationfolder }}/backend
-        run: aws s3 cp *.war s3://${{ env.S3BUCKET }}/
-        working-directory: ${{ env.applicationfolder }}/frontend
-        run: aws s3 cp build/* s3://${{ env.S3BUCKET }}/
+        run: |
+          aws s3 cp *.war s3://${{ env.S3BUCKET }}/
+          cd ../frontend && aws s3 cp build/* s3://${{ env.S3BUCKET }}/
+
 
   deploy:
     needs: build
