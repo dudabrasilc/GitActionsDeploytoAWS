@@ -1,6 +1,7 @@
 name: Build and Deploy
 
 on:
+  # workflow_dispatch: {}
   push:
     branches: [ main ]
   pull_request:
@@ -28,29 +29,27 @@ jobs:
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install Dependencies
-        run: |
-          cd $GITHUB_WORKSPACE/exotic/backend
-          bundle install
-          cd $GITHUB_WORKSPACE/exotic/frontend
-          npm install
+      - name: Set up Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      - name: chmod
+        run: chmod -R +x ./.github
 
       - name: Build and Package
         id: package
         run: |
-          cd $GITHUB_WORKSPACE/exotic/backend
-          bundle exec rails assets:precompile RAILS_ENV=production
-          cd $GITHUB_WORKSPACE/exotic/frontend
-          npm run build
+          $GITHUB_WORKSPACE/.github/scripts/build.sh
 
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts
-          path: |
-            $GITHUB_WORKSPACE/exotic/backend/public
-            $GITHUB_WORKSPACE/exotic/frontend/build
-          
+      - name: Upload Artifact to s3
+        working-directory: ${{ env.applicationfolder }}/backend/public
+        run: aws s3 cp . s3://${{ env.S3BUCKET }}/${{ env.applicationfolder }}/backend --recursive
+        
+      - name: Upload Artifact to s3
+        working-directory: ${{ env.applicationfolder }}/frontend/build
+        run: aws s3 cp . s3://${{ env.S3BUCKET }}/${{ env.applicationfolder }}/frontend --recursive
+        
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -59,14 +58,14 @@ jobs:
       id-token: write
       contents: read
     steps:
-    - uses: actions/checkout@v2
-    - uses: aws-actions/configure-aws-credentials@v1
-      with:
-        role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
-        role-session-name: GitHub-Action-Role
-        aws-region: ${{ env.AWS_REGION }}
-    - name: Deploy to CodeDeploy
-      run: |
-        echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
-        commit_hash=`git rev-parse HEAD`
-        aws deploy create-deployment --application-name CodeDeployAppNameWithASG --deployment-group-name CodeDeployGroupName --github-location repository=$GITHUB_REPOSITORY,commitId=$commit_hash --ignore-application-stop-failures
+      - uses: actions/checkout@v2
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+          role-session-name: GitHub-Action-Role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy to CodeDeploy
+        run: |
+          echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
+          commit_hash=`git rev-parse HEAD`
+          aws deploy create-deployment --application-name CodeDeployAppNameWithASG --deployment-group-name CodeDeployGroupName --github-location repository=$GITHUB_REPOSITORY,commitId=$commit_hash --ignore-application-stop-failures
