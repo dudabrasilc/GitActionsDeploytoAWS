@@ -1,6 +1,0 @@
-W, [2023-04-22T18:41:19.059086 #36686]  WARN -- : You are running SQLite in production, this is generally not recommended. You can disable this warning by setting "config.active_record.sqlite3_production_warning=false".
-I, [2023-04-22T18:41:19.211869 #36686]  INFO -- : Migrating to CreateUsers (20220809204915)
-I, [2023-04-22T18:41:19.224943 #36686]  INFO -- : Migrating to CreateCars (20230225083218)
-I, [2023-04-22T18:41:19.229640 #36686]  INFO -- : Migrating to CreateRaces (20230225083918)
-I, [2023-04-22T18:41:19.236088 #36686]  INFO -- : Migrating to CreateRacesCars (20230225084050)
-I, [2023-04-22T18:41:19.241379 #36686]  INFO -- : Migrating to CreateRaceTracks (20230306085353)
