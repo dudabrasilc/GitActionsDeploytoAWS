@@ -81,6 +81,6 @@ test:
 #
 production:
   <<: *default
-  database: pokedex_production
+  database: pokedex_development
   username: mariaebc
   password: <%= ENV["POKEDEX_DATABASE_PASSWORD"] %>
