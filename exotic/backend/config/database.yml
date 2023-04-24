@@ -81,8 +81,9 @@ test:
 #
 production:
   <<: *default
-  database: pokedex_development
+  database: test_app_6_test
   adapter: postgresql
   host: localhost
-  username: <%= ENV["POSTGRES_USER"] %>
-  password: <%= ENV["POSTGRES_PASSWORD"] %>
+  encoding: unicode
+  username: <%= ENV[“POSTGRES_USER”] %>
+  password: <%= ENV[“POSTGRES_PASSWORD”] %>
