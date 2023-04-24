@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     # services:
     # postgres:
-    image: postgres:11
+    # image: postgres:11
     ports:
     - 5432:5432
     env:
@@ -60,9 +60,14 @@ jobs:
         run: aws s3 cp . s3://${{ env.S3BUCKET }}/${{ env.applicationfolder }}/frontend --recursive
         
   deploy:
+     ports:
+    - 5432:5432
+       env:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
     needs: build
     runs-on: ubuntu-latest
-    environment: Dev
+    # environment: Dev
     permissions:
       id-token: write
       contents: read
