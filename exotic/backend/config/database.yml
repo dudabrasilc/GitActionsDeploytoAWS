@@ -82,5 +82,5 @@ test:
 production:
   <<: *default
   database: pokedex_development
-  username: mariaebc
-  password: <%= ENV["POKEDEX_DATABASE_PASSWORD"] %>
+  username: dudabrasill
+  password: littlelamb
