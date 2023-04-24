@@ -16,7 +16,6 @@ jobs:
   build:
     name: Build and Package
     runs-on: ubuntu-latest
-    options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     permissions:
       id-token: write
       contents: read
@@ -52,15 +51,9 @@ jobs:
         run: aws s3 cp . s3://${{ env.S3BUCKET }}/${{ env.applicationfolder }}/frontend --recursive
         
   deploy:
-     ports:
-    - 5432:5432
-       env:
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-    POSTGRES_DB: pokedex_development
     needs: build
     runs-on: ubuntu-latest
-    # environment: Dev
+    environment: Dev
     permissions:
       id-token: write
       contents: read
@@ -71,6 +64,15 @@ jobs:
           role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
+       - name: Set up PostgreSQL environment variables
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_DB: pokedex_development
+        POSTGRES_USER: <%= ENV[“POSTGRES_USER”] %>
+        POSTGRES_PASSWORD: <%= ENV[“POSTGRES_PASSWORD”] %>
+      run: |
+        echo "Setting up PostgreSQL environment variables"
       - name: Deploy to CodeDeploy
         run: |
           echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
